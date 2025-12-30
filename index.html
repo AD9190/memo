@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Money Receipt Generator</title>
+  <style>
+    :root{
+      --paper-bg: #fff;
+      --muted: #6b7280;
+      --accent: #0f172a;
+      --green: #0b6b3a;
+      font-family: 'Times New Roman', Times, serif;
+    }
+    body{background:#f3f4f6;padding:24px;margin:0}
+    .container{max-width:1400px;margin:0 auto;padding:0 20px}
+    h1{font-size:20px;margin:0 0 12px}
+    .layout{display:grid;grid-template-columns:320px 1fr;gap:18px}
+    .card{background:var(--paper-bg);padding:16px;border-radius:8px;box-shadow:0 1px 4px rgba(2,6,23,.06)}
+    label{display:block;font-size:13px;color:var(--muted);margin-top:12px;font-weight:500}
+    input[type="text"], input[type="date"], select, textarea{
+      width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;margin-top:6px;
+      box-sizing:border-box;
+    }
+    .small-btn{padding:10px 14px;border-radius:6px;border:0;background:#374151;color:#fff;cursor:pointer;font-size:13px}
+    .primary{background:#0b6bff}
+    .actions{display:flex;gap:10px;margin-top:16px;align-items:center}
+    
+    /* Preview receipt */
+    .preview-wrap{padding:12px}
+    .receipt-container{
+      position:relative;
+      background:#fff;
+      font-family: 'Times New Roman', Times, serif;
+      width:10.5in;
+      height:30.9in;
+      margin:0 auto;
+    }
+    
+    .receipt{
+      position:absolute;
+      left:0;
+      right:0;
+      width:8.5in;
+      border:2px solid #000;
+      background:#fff;
+      overflow:hidden; 
+      height:11.1in;
+      padding:25px 40px;
+      box-sizing:border-box;
+      font-size:16px;
+      line-height:1.5;
+      margin:0 auto;
+    }
+    
+    #receipt1{
+      top:3.2in;
+    }
+    
+    #receipt2{
+      top:18.4in;
+    }
+    
+    .receipt-copy-label{
+      font-size:10px;
+      font-weight:bold;
+      color:#999;
+      text-align:center;
+      margin-bottom:8px;
+      text-transform:uppercase;
+      letter-spacing:0.5px;
+    }
+    
+    .receipt-heading{
+      font-size:24px;
+      font-weight:bold;
+      text-align:center;
+      margin-bottom:15px;
+      text-transform:uppercase;
+      letter-spacing:1px;
+      color:#000;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      position:relative;
+    }
+    
+    .copy-label{
+      position:absolute;
+      right:0;
+      font-size:14px;
+      font-weight:bold;
+      color:#000;
+      text-transform:uppercase;
+      letter-spacing:0.5px;
+    }
+    
+    .receipt-no-date{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      font-size:16px;
+      margin-bottom:12px;
+      font-weight:500;
+    }
+    
+    .field-group{
+      margin:8px 0;
+    }
+    
+    .field-label{
+      font-size:16px;
+      margin-bottom:3px;
+      font-weight:normal;
+      color:#000;
+    }
+    
+    .underline{
+      border-bottom:1.5px solid #000;
+      min-height:22px;
+      padding:4px 3px 2px 3px;
+      margin-top:2px;
+      font-size:16px;
+      font-weight:500;
+    }
+    
+    .amount-box{
+      border:2px solid #000;
+      padding:12px 20px;
+      display:inline-block;
+      font-weight:bold;
+      font-size:18px;
+      margin:8px 0;
+    }
+    
+    .flex-between{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:20px;
+    }
+    
+    .signature-area{
+      margin-top:20px;
+      text-align:right;
+    }
+    
+    .signature-line{
+      border-top:0;
+      width:180px;
+      margin-left:auto;
+      margin-top:35px;
+      padding-top:8px;
+      text-align:center;
+      font-size:14px;
+    }
+    
+    .note{
+      font-size:12px;
+      color:#000;
+      margin-top:6px;
+      font-style:italic;
+    }
+    
+    .for-company{
+      font-size:14px;
+      margin-bottom:10px;
+      font-weight:bold;
+    }
+    
+    /* Print styles */
+    @media print{
+      body{background:#fff;padding:0;margin:0}
+      .actions, .card:not(.printable){display:none}
+      h1{display:none}
+      .receipt-container{
+        page-break-inside:avoid;
+        margin:0 auto;
+        padding:2.74cm 0.2in 0 0.2in;
+        width:100%;
+        height:auto;
+        position:static;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+      }
+      .receipt{
+        position:static;
+        width:7.8in;
+        height:auto;
+        margin:0 auto 0.4in auto;
+        border:1px solid #000;
+        box-shadow:none;
+        page-break-inside:avoid;
+        page-break-after:avoid;
+        padding:10px 20px;
+        font-size:13px;
+        line-height:1.25;
+      }
+      #receipt1{top:auto;margin-top:-0.5cm}
+      #receipt2{top:auto;margin-top:1.2in}
+      .container{max-width:none;padding:0;margin:0}
+      .preview-wrap{padding:0;margin:0}
+      .card.printable{padding:0;margin:0;box-shadow:none;border:0}
+      .receipt-copy-label{display:none}
+      .print-note{display:none}
+      /* tighten vertical spacing inside receipts for print */
+      .receipt-heading{margin-bottom:8px}
+      .receipt-no-date{margin-bottom:6px;font-size:13px}
+      .field-group{margin:4px 0}
+      .underline{min-height:16px;padding:2px 2px 1px 2px;margin-top:1px;font-size:13px}
+      .field-label{font-size:13px;margin-bottom:1px}
+      .amount-box{margin:4px 0;padding:10px 16px;font-size:15px}
+      .signature-area{margin-top:10px}
+      .signature-line{margin-top:14px}
+      .note{margin-top:3px;font-size:11px}
+      @page {
+        size: A4 portrait;
+        margin: 0.2in;
+      }
+      html, body{width:auto;height:auto}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Money Receipt Generator</h1>
+    <div class="layout">
+      <div class="card" aria-hidden="false">
+        <div>
+          <label>Company name (for signature line)</label>
+          <input id="companyName" type="text" value="DIGI DEVELOPER PVT. LTD." />
+
+          <label>Receipt No.</label>
+          <input id="receiptNo" type="text" placeholder="e.g., 001, A-123" />
+
+          <label>Received with thanks from (Sri / Smt. / M/s)</label>
+          <input id="receivedFrom" type="text" placeholder="Name or organisation" />
+
+          <label>Payer address</label>
+          <textarea id="payerAddress" placeholder="Enter complete address" rows="2"></textarea>
+
+          <label>Amount (₹)</label>
+          <input id="amountNumber" type="number" step="0.01" placeholder="5000.00" />
+
+          <label>The sum of Rupees (in words)</label>
+          <div style="display:flex;gap:8px;align-items:end">
+            <input id="amountWords" type="text" placeholder="E.g., Five thousand only" style="flex:1" />
+            <button type="button" class="small-btn" onclick="generateAmountWords()" title="Auto-generate from amount">Auto</button>
+          </div>
+
+          <label>Payment mode</label>
+          <select id="paymentMode">
+            <option>Cash</option>
+            <option>Cheque</option>
+            <option>Draft</option>
+            <option>Online Transfer</option>
+            <option>UPI</option>
+          </select>
+
+          <label>Cheque / Draft No. (if applicable)</label>
+          <input id="chequeDraftNo" type="text" placeholder="Enter cheque/draft number" />
+
+          <label>Date</label>
+          <input id="date" type="date" />
+
+          <label>Branch (if applicable)</label>
+          <input id="branch" type="text" placeholder="Bank branch name" />
+
+          <label>Purpose (as part / full payment against)</label>
+          <input id="purpose" type="text" placeholder="Description of payment purpose" />
+
+          <div class="actions">
+            <button id="updateBtn" class="small-btn primary">Update Preview</button>
+            <button id="printBtn" class="small-btn">Print</button>
+            <button id="pdfBtn" class="small-btn" style="background:#059669">Save Bill</button>
+          </div>
+
+          <div class="print-note" style="margin-top:8px;color:#475569;font-size:12px">
+            Tip: Click <strong>Save Bill</strong> to save as PDF in the bills folder. Two receipts per A4 page.
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-wrap">
+        <div class="card printable" id="previewCard">
+          <div class="receipt-container">
+            <!-- Copy 1 - Office Copy -->
+            <div class="receipt" id="receipt1">
+              <div class="receipt-copy-label"></div>
+              <div class="receipt-heading">
+                <span class="copy-label">Office Copy</span>
+                MONEY RECEIPT
+              </div>
+              
+              <div class="receipt-no-date">
+                <div>No. <span id="receiptNo1">________</span></div>
+                <div>Date: <span id="receiptDate1">________</span></div>
+              </div>
+
+              <div class="field-group">
+                <div class="field-label">Received with thanks from Sri/Smt./M/s</div>
+                <div class="underline" id="receivedFrom1">......................................................................</div>
+              </div>
+
+              <div class="field-group">
+                <div class="field-label">Address</div>
+                <div class="underline" id="payerAddress1">......................................................................</div>
+              </div>
+
+              <div class="field-group">
+                <div class="field-label">The sum of Rupees</div>
+                <div class="underline" id="amountWords1">......................................................................</div>
+              </div>
+
+              <div class="field-group">
+                <div class="field-label">By <span id="payMode1">Cash</span> No.</div>
+                <div class="underline" id="chequeNo1">......................................................................</div>
+              </div>
+
+              <div class="field-group">
+                <div class="flex-between">
+                  <div style="flex:1">
+                    <div class="field-label">Dated</div>
+                    <div class="underline" id="chequeDate1">................</div>
+                  </div>
+                  <div style="flex:1">
+                    <div class="field-label">Branch</div>
+                    <div class="underline" id="branch1">................</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field-group">
+                <div class="field-label">As part / full payment against</div>
+                <div class="underline" id="purpose1">......................................................................</div>
+              </div>
+
+              <div class="flex-between" style="margin-top:25px;align-items:flex-end">
+                <div>
+                  <div class="amount-box" id="amount1">Rs. ________</div>
+                  <div class="note">Subject to realisation</div>
+                </div>
+
+                <div class="signature-area">
+                    <div class="for-company" style="font-weight:bold">For <span id="forCompany1">________________</span></div>
+                    <div class="signature-line" style="font-weight:bold">Authorised Signatory</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Copy 2 - Customer Copy -->
+            <div class="receipt" id="receipt2">
+              <div class="receipt-copy-label"></div>
+              <div class="receipt-heading">
+                <span class="copy-label">Customer Copy</span>
+                MONEY RECEIPT
+              </div>
+              
+              <div class="receipt-no-date">
+                <div>No. <span id="receiptNo2">________</span></div>
+                <div>Date: <span id="receiptDate2">________</span></div>
+              </div>
+
+              <div class="field-group">
+                <div class="field-label">Received with thanks from Sri/Smt./M/s</div>
+                <div class="underline" id="receivedFrom2">......................................................................</div>
+              </div>
+
+              <div class="field-group">
+                <div class="field-label">Address</div>
+                <div class="underline" id="payerAddress2">......................................................................</div>
+              </div>
+
+              <div class="field-group">
+                <div class="field-label">The sum of Rupees</div>
+                <div class="underline" id="amountWords2">......................................................................</div>
+              </div>
+
+              <div class="field-group">
+                <div class="field-label">By <span id="payMode2">Cash</span> No.</div>
+                <div class="underline" id="chequeNo2">......................................................................</div>
+              </div>
+
+              <div class="field-group">
+                <div class="flex-between">
+                  <div style="flex:1">
+                    <div class="field-label">Dated</div>
+                    <div class="underline" id="chequeDate2">................</div>
+                  </div>
+                  <div style="flex:1">
+                    <div class="field-label">Branch</div>
+                    <div class="underline" id="branch2">................</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field-group">
+                <div class="field-label">As part / full payment against</div>
+                <div class="underline" id="purpose2">......................................................................</div>
+              </div>
+
+              <div class="flex-between" style="margin-top:25px;align-items:flex-end">
+                <div>
+                  <div class="amount-box" id="amount2">Rs. ________</div>
+                  <div class="note">Subject to realisation</div>
+                </div>
+
+                <div class="signature-area">
+                  <div class="for-company">For <span id="forCompany2">________________</span></div>
+                  <div class="signature-line" style="font-weight:bold">Authorised Signatory</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="print-note" style="margin-top:10px;color:#334155;font-size:13px">Two copies stacked vertically: Office Copy (top) and Customer Copy (bottom). Perfect for A4 pre-printed pads.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Libraries for optional PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script>
+    // Helper to set default date to today
+    (function(){ const d=document.getElementById('date'); if(d) d.value=new Date().toISOString().slice(0,10); })();
+
+    // Function to convert number to words (Indian style)
+    function numberToWords(num) {
+      if (!num || num === '0' || num === 0) return '';
+      
+      const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+      const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+      const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+      
+      function convertHundreds(n) {
+        let result = '';
+        if (n >= 100) {
+          result += ones[Math.floor(n / 100)] + ' Hundred ';
+          n %= 100;
+        }
+        if (n >= 20) {
+          result += tens[Math.floor(n / 10)] + ' ';
+          n %= 10;
+        } else if (n >= 10) {
+          result += teens[n - 10] + ' ';
+          return result;
+        }
+        if (n > 0) {
+          result += ones[n] + ' ';
+        }
+        return result;
+      }
+      
+      let amount = parseFloat(num);
+      let rupees = Math.floor(amount);
+      let paise = Math.round((amount - rupees) * 100);
+      
+      let result = '';
+      
+      if (rupees >= 10000000) { // Crore
+        result += convertHundreds(Math.floor(rupees / 10000000)) + 'Crore ';
+        rupees %= 10000000;
+      }
+      if (rupees >= 100000) { // Lakh
+        result += convertHundreds(Math.floor(rupees / 100000)) + 'Lakh ';
+        rupees %= 100000;
+      }
+      if (rupees >= 1000) { // Thousand
+        result += convertHundreds(Math.floor(rupees / 1000)) + 'Thousand ';
+        rupees %= 1000;
+      }
+      if (rupees > 0) {
+        result += convertHundreds(rupees);
+      }
+      
+      result += 'Rupees';
+      
+      if (paise > 0) {
+        result += ' and ' + convertHundreds(paise) + 'Paise';
+      }
+      
+      return result + ' Only';
+    }
+
+    // Function to manually generate amount in words
+    function generateAmountWords() {
+      const amount = document.getElementById('amountNumber').value;
+      if (amount) {
+        const words = numberToWords(amount);
+        document.getElementById('amountWords').value = words;
+        updatePreview();
+      }
+    }
+
+    // map inputs to preview fields
+    function updatePreview(){
+      const get = id => document.getElementById(id).value || '';
+      
+      // Company name updates
+      const companyName = get('companyName') || 'DIGI DEVELOPER PVT. LTD.';
+      document.getElementById('forCompany1').textContent = companyName;
+      document.getElementById('forCompany2').textContent = companyName;
+
+      // Receipt number updates
+      const receiptNo = get('receiptNo') || '________';
+      document.getElementById('receiptNo1').textContent = receiptNo;
+      document.getElementById('receiptNo2').textContent = receiptNo;
+
+      // Received from updates
+      const recv = get('receivedFrom') || '......................................................................';
+      document.getElementById('receivedFrom1').textContent = recv;
+      document.getElementById('receivedFrom2').textContent = recv;
+
+      // Payer address updates
+      const payer = get('payerAddress') || '......................................................................';
+      document.getElementById('payerAddress1').textContent = payer;
+      document.getElementById('payerAddress2').textContent = payer;
+
+      // Amount in words updates
+      const amtWords = get('amountWords') || '......................................................................';
+      document.getElementById('amountWords1').textContent = amtWords;
+      document.getElementById('amountWords2').textContent = amtWords;
+
+      // Cheque/Draft number updates
+      const chq = get('chequeDraftNo') || '......................................................................';
+      document.getElementById('chequeNo1').textContent = chq;
+      document.getElementById('chequeNo2').textContent = chq;
+
+      // Date updates
+      const date = get('date');
+      const formattedDate = date ? new Date(date).toLocaleDateString('en-IN') : '................';
+      document.getElementById('receiptDate1').textContent = formattedDate;
+      document.getElementById('receiptDate2').textContent = formattedDate;
+      document.getElementById('chequeDate1').textContent = formattedDate;
+      document.getElementById('chequeDate2').textContent = formattedDate;
+
+      // Branch updates
+      const branch = get('branch') || '................';
+      document.getElementById('branch1').textContent = branch;
+      document.getElementById('branch2').textContent = branch;
+
+      // Purpose updates
+      const purpose = get('purpose') || '......................................................................';
+      document.getElementById('purpose1').textContent = purpose;
+      document.getElementById('purpose2').textContent = purpose;
+
+      // Payment mode updates
+      const payMode = get('paymentMode') || 'Cash';
+      document.getElementById('payMode1').textContent = payMode;
+      document.getElementById('payMode2').textContent = payMode;
+
+      // Amount number updates
+      const amtnum = get('amountNumber');
+      const formattedAmount = amtnum ? 'Rs. ' + parseFloat(amtnum).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 'Rs. ________';
+      document.getElementById('amount1').textContent = formattedAmount;
+      document.getElementById('amount2').textContent = formattedAmount;
+
+      // Auto-generate amount in words if number is provided but words are empty
+      if (amtnum && !get('amountWords')) {
+        const wordsInRupees = numberToWords(amtnum);
+        document.getElementById('amountWords').value = wordsInRupees;
+        document.getElementById('amountWords1').textContent = wordsInRupees;
+        document.getElementById('amountWords2').textContent = wordsInRupees;
+      }
+    }
+
+    // Wire up events
+    document.getElementById('updateBtn').addEventListener('click', updatePreview);
+    // auto update on change for convenience
+    ['companyName','receiptNo','receivedFrom','payerAddress','amountWords','amountNumber','paymentMode','chequeDraftNo','date','branch','purpose']
+    .forEach(id => document.getElementById(id).addEventListener('input', updatePreview));
+
+    // print
+    document.getElementById('printBtn').addEventListener('click', function(){ window.print(); });
+
+    // Save Bill - Generate PDF and send to backend
+    document.getElementById('pdfBtn').addEventListener('click', async function(){
+      const receiptNo = document.getElementById('receiptNo').value.trim();
+      const receivedFrom = document.getElementById('receivedFrom').value.trim();
+      
+      if (!receiptNo) {
+        alert('Please enter a receipt number!');
+        return;
+      }
+      
+      if (!receivedFrom) {
+        alert('Please enter the recipient name!');
+        return;
+      }
+      
+      updatePreview();
+      const el = document.querySelector('.receipt-container');
+      
+      try {
+        const canvas = await html2canvas(el, { 
+          scale: 2, 
+          useCORS: true, 
+          backgroundColor: '#ffffff',
+          windowWidth: el.scrollWidth,
+          windowHeight: el.scrollHeight
+        });
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        
+        // Custom page size: 8.5in x 30.9in (215.9mm x 784.86mm)
+        const pdf = new jsPDF({ 
+          orientation: 'portrait', 
+          unit: 'in', 
+          format: [8.5, 30.9]
+        });
+        
+        // Add image to fill the entire page
+        pdf.addImage(imgData, 'PNG', 0, 0, 8.5, 30.9);
+        
+        // Convert PDF to blob
+        const pdfBlob = pdf.output('blob');
+        
+        // Send to backend
+        const formData = new FormData();
+        formData.append('pdf', pdfBlob);
+        formData.append('receiptNo', receiptNo);
+        formData.append('receivedFrom', receivedFrom);
+        
+        const response = await fetch('http://localhost:5000/save-bill', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          alert('✓ Bill saved successfully as: ' + result.filename);
+        } else {
+          alert('✗ Error: ' + result.error);
+        }
+        
+      } catch (err) {
+        alert('Error saving bill: ' + err.message);
+        console.error(err);
+      }
+    });
+
+    // initial preview
+    updatePreview();
+  </script>
+</body>
+</html>
